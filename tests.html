@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pruebas de damas</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #0f141a; color: #e7edf5; margin: 0; padding: 2rem; line-height: 1.5; }
+  h1 { font-size: 1.4rem; }
+  #resumen { font-weight: 700; margin: .5rem 0 1rem; }
+  ul { list-style: none; padding: 0; }
+  li { padding: .35rem .6rem; border-radius: 6px; margin-bottom: .25rem; background: #172029; }
+  li.ok { border-left: 4px solid #34d399; }
+  li.fail { border-left: 4px solid #f87171; background: #2a171a; }
+  a { color: #7dd3fc; }
+</style>
+</head>
+<body>
+<h1>Pruebas del motor de damas españolas</h1>
+<p><a href="index.html">Volver al juego</a></p>
+<p id="resumen">Ejecutando…</p>
+<ul id="resultado"></ul>
+<script src="js/rules.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/tests.js"></script>
+</body>
+</html>
