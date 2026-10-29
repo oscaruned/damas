@@ -1,0 +1,449 @@
+/* Damas — hoja de estilos */
+
+:root {
+  --fondo: #0d1117;
+  --fondo-2: #131a23;
+  --texto: #e8eef6;
+  --muted: #9aa8ba;
+  --panel: rgba(255, 255, 255, 0.045);
+  --panel-fuerte: rgba(255, 255, 255, 0.075);
+  --borde: rgba(255, 255, 255, 0.10);
+  --campo: #0a0f15;
+  --acento: #6ee7b7;
+  --acento-2: #38bdf8;
+  --peligro: #fca5a5;
+  --oro: #f3c969;
+  --oro-texto: #f3c969;
+  --enlace: #7dd3fc;
+  --clara: #e9d8b8;
+  --oscura: #5c3d27;
+  --oscura-2: #4a301d;
+  --marco: #2a1a10;
+  --sombra: 0 24px 60px rgba(0, 0, 0, 0.55);
+  --radio: 16px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --fondo: #f3ede4;
+    --fondo-2: #efe7db;
+    --texto: #221a11;
+    --muted: #6c5b48;
+    --panel: #fffdf9;
+    --panel-fuerte: #fffaf1;
+    --borde: #e3d7c5;
+    --campo: #fffdf9;
+    --sombra: 0 18px 44px rgba(70, 45, 20, 0.16);
+    --peligro: #b91c1c;
+    --oro-texto: #8a5a00;
+    --enlace: #0369a1;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: var(--texto);
+  background:
+    radial-gradient(1100px 600px at 12% -10%, rgba(110, 231, 183, 0.10), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(56, 189, 248, 0.10), transparent 55%),
+    linear-gradient(180deg, var(--fondo-2), var(--fondo) 55%);
+  line-height: 1.55;
+}
+
+h1, h2, h3 { line-height: 1.2; margin: 0; }
+
+a { color: var(--enlace); }
+
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.saltar {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.7rem 1rem;
+  background: var(--acento);
+  color: #08251a;
+  font-weight: 700;
+  border-radius: 0 0 10px 0;
+}
+.saltar:focus { left: 0; }
+
+/* --- Cabecera -------------------------------------------------------- */
+
+.cabecera {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.marca { display: flex; align-items: center; gap: 0.9rem; }
+
+.logo {
+  display: grid;
+  place-items: center;
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #4a2f1d, #241408);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.cabecera h1 {
+  font-size: clamp(1.7rem, 3.4vw, 2.3rem);
+  letter-spacing: 0.02em;
+}
+
+.subtitulo { margin: 0.1rem 0 0; color: var(--muted); font-size: 0.95rem; }
+
+.pista {
+  margin: 0;
+  max-width: 34ch;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* --- Disposición ----------------------------------------------------- */
+
+.disposicion {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.25rem 3rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(330px, 0.95fr);
+  gap: clamp(1.2rem, 3vw, 2.4rem);
+  align-items: start;
+}
+
+@media (max-width: 920px) {
+  .disposicion { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .cabecera { padding: 1.25rem 0.75rem 1rem; }
+  .disposicion { padding: 0 0.75rem 2rem; }
+  .marco-tablero { padding: 8px; border-radius: 14px; }
+  .zona-panel { padding: 1rem 0.9rem; }
+  .zona-juego .botonera { justify-content: space-between; }
+  .zona-juego .boton { flex: 1 1 auto; }
+}
+
+.zona-juego, .zona-panel {
+  min-width: 0;
+}
+
+.zona-panel {
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: clamp(1rem, 2.4vw, 1.6rem);
+  box-shadow: var(--sombra);
+  backdrop-filter: blur(6px);
+}
+
+.zona-panel h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.6rem;
+  letter-spacing: 0.02em;
+}
+.zona-panel h2:not(:first-child) { margin-top: 1.5rem; }
+
+/* --- Tablero --------------------------------------------------------- */
+
+.marco-tablero {
+  width: min(100%, 640px);
+  margin: 0 auto;
+  padding: clamp(8px, 1.5vw, 18px);
+  border-radius: 20px;
+  background: linear-gradient(150deg, #6b4526 0%, #3a2414 45%, #23140a 100%);
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.55),
+    0 2px 0 rgba(255, 255, 255, 0.12) inset,
+    0 -3px 12px rgba(0, 0, 0, 0.6) inset;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+#tablero {
+  position: relative;
+  display: grid;
+  grid-template-rows: repeat(8, 1fr);
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.55), 0 6px 18px rgba(0, 0, 0, 0.45) inset;
+  touch-action: manipulation;
+}
+
+.fila { display: grid; grid-template-columns: repeat(8, 1fr); }
+
+.casilla {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  cursor: default;
+}
+
+.casilla.clara { background: transparent; }
+.casilla.oscura { background: transparent; cursor: pointer; }
+
+.casilla.ultima { box-shadow: inset 0 0 0 999px rgba(243, 201, 105, 0.18); }
+
+.casilla.seleccionada {
+  box-shadow: inset 0 0 0 4px var(--acento-2), inset 0 0 26px rgba(56, 189, 248, 0.35);
+  z-index: 3;
+}
+
+.casilla.jugada::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 26%; height: 26%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--acento);
+  box-shadow: 0 0 14px rgba(110, 231, 183, 0.75);
+  pointer-events: none;
+  animation: latido 2.4s ease-in-out infinite;
+}
+
+.casilla.jugada.captura::after {
+  width: 92%; height: 92%;
+  background: transparent;
+  border: 4px solid var(--oro);
+  box-shadow: 0 0 18px rgba(243, 201, 105, 0.55);
+}
+
+/* Destino simple cuando hay captura obligatoria y el soplido está activo:
+   se advierte de que la jugada omite la captura. */
+.casilla.jugada.omision::after {
+  width: 20%; height: 20%;
+  background: var(--oro);
+  border: 2px solid rgba(13, 17, 23, 0.65);
+  box-shadow: 0 0 12px rgba(243, 201, 105, 0.8);
+  animation: latido 1.4s ease-in-out infinite;
+}
+
+@keyframes latido {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+.casilla:focus {
+  outline: 3px solid var(--acento-2);
+  outline-offset: -4px;
+  z-index: 4;
+}
+
+/* --- Fichas y efecto SVG ----------------------------------------------- */
+
+.capa-tablero {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 0;
+}
+.capa-tablero text { user-select: none; }
+
+.capa-fichas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.fichaSvg {
+  will-change: transform;
+}
+
+.fichaSvg .cuerpo {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.18s ease;
+}
+
+.fichaSvg.moviendo .cuerpo { transform: scale(1.07); }
+
+/* --- Estado y botones ------------------------------------------------ */
+
+.estado {
+  margin: 1rem auto 0;
+  max-width: 640px;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  font-weight: 600;
+  text-align: center;
+}
+
+.estado.pensando { color: var(--oro-texto); }
+
+.botonera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.boton {
+  font: inherit;
+  font-weight: 600;
+  color: var(--texto);
+  background: var(--panel-fuerte);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 0.6rem 0.95rem;
+  cursor: pointer;
+  min-height: 44px;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.boton:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.22); }
+.boton:active { transform: translateY(1px); }
+.boton:focus-visible { outline: 3px solid var(--acento-2); outline-offset: 2px; }
+.boton[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+.boton-principal {
+  background: linear-gradient(180deg, #34d399, #10b981);
+  border-color: #059669;
+  color: #052e21;
+}
+.boton-principal:hover { background: linear-gradient(180deg, #4ade80, #34d399); }
+
+/* --- Formulario ------------------------------------------------------ */
+
+#form-jugada label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.fila-entrada { display: flex; gap: 0.5rem; }
+
+#entrada {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  font-size: 1.05rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid var(--borde);
+  background: var(--campo);
+  color: var(--texto);
+  min-height: 46px;
+}
+#entrada::placeholder { color: var(--muted); opacity: 0.7; }
+#entrada:focus { outline: 3px solid var(--acento-2); outline-offset: 1px; border-color: var(--acento-2); }
+
+.ayuda { color: var(--muted); font-size: 0.88rem; margin: 0.55rem 0 0; }
+
+.detalle { margin: 0.7rem 0 0; min-height: 1.2em; color: var(--texto); }
+
+.error { margin: 0.4rem 0 0; min-height: 1.2em; color: var(--peligro); font-weight: 600; }
+.error:empty { min-height: 0; }
+
+#registro {
+  width: 100%;
+  min-height: 210px;
+  max-height: 46vh;
+  resize: vertical;
+  font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  padding: 0.8rem;
+  border-radius: 12px;
+  border: 1px solid var(--borde);
+  background: var(--campo);
+  color: var(--texto);
+}
+#registro:focus { outline: 3px solid var(--acento-2); outline-offset: 1px; }
+
+/* --- Ajustes y ayuda ------------------------------------------------- */
+
+details {
+  margin-top: 1.25rem;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--panel);
+  padding: 0.2rem 0.9rem;
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.6rem 0;
+}
+summary:focus-visible { outline: 3px solid var(--acento-2); outline-offset: 3px; border-radius: 4px; }
+
+.rejilla-ajustes {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.55rem 0.8rem;
+  align-items: center;
+  margin: 0.4rem 0 0.8rem;
+}
+
+.rejilla-ajustes label { font-size: 0.92rem; }
+
+select {
+  font: inherit;
+  padding: 0.45rem 0.6rem;
+  min-height: 42px;
+  border-radius: 8px;
+  border: 1px solid var(--borde);
+  background: var(--campo);
+  color: var(--texto);
+}
+select:focus-visible { outline: 3px solid var(--acento-2); outline-offset: 2px; }
+
+.casilla-ajuste { display: flex; align-items: center; gap: 0.55rem; margin: 0.45rem 0; }
+.casilla-ajuste input { width: 1.15rem; height: 1.15rem; accent-color: #10b981; }
+.casilla-ajuste label { font-size: 0.92rem; }
+
+.lista-ayuda { margin: 0.4rem 0 0.6rem; padding-left: 1.1rem; }
+.lista-ayuda li { margin-bottom: 0.25rem; font-size: 0.9rem; }
+
+.lista-ayuda strong, .ayuda strong { color: var(--texto); }
+
+.ayuda-panel { margin-bottom: 0.5rem; }
+
+/* --- Movimiento reducido --------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .fichaSvg .cuerpo { transition: none; }
+  .casilla.jugada::after { animation: none; }
+  .casilla.jugada.omision::after { animation: none; }
+}
+
+/* --- Contraste alto --------------------------------------------------- */
+
+@media (prefers-contrast: more) {
+  :root { --borde: rgba(255, 255, 255, 0.35); --muted: #c9d4e2; }
+  .casilla.oscura { background: #2b1a0e; }
+  .casilla.clara { background: #f6ead2; }
+  .casilla:focus { outline-width: 4px; }
+}

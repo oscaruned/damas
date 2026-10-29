@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="description" content="Juego de damas españolas accesible, con voz y registro de partida.">
+<meta name="theme-color" content="#3a2a1c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Damas">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<link rel="icon" href="icon-192.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.json">
+<title>Damas — Juego accesible</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<a class="saltar" href="#entrada">Saltar al cuadro de jugada</a>
+
+<header class="cabecera">
+  <div class="marca">
+    <span class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="26" height="26"><circle cx="12" cy="12" r="10" fill="#e9d7b3"/><circle cx="12" cy="12" r="5.4" fill="#3a2a1c"/></svg>
+    </span>
+    <div>
+      <h1>Damas</h1>
+      <p class="subtitulo">Damas españolas · Tú juegas con blancas</p>
+    </div>
+  </div>
+  <p class="pista">Pulsa una ficha y luego su destino, o escribe la jugada.</p>
+</header>
+
+<main class="disposicion">
+  <section class="zona-juego" aria-labelledby="titulo-tablero">
+    <h2 id="titulo-tablero" class="sr-only">Tablero de juego</h2>
+
+    <div class="marco-tablero">
+      <div id="tablero" role="grid" aria-label="Tablero de damas, 8 filas por 8 columnas" aria-rowcount="8" aria-colcount="8"></div>
+    </div>
+
+    <p class="estado" id="estado">Preparando la partida…</p>
+
+    <div class="botonera" role="group" aria-label="Acciones de la partida">
+      <button type="button" id="btn-nueva" class="boton">Nueva partida</button>
+      <button type="button" id="btn-reglas" class="boton">Leer reglas</button>
+    </div>
+  </section>
+
+  <section class="zona-panel" aria-labelledby="titulo-jugada">
+    <h2 id="titulo-jugada">Tu jugada</h2>
+
+    <form id="form-jugada" novalidate>
+      <label for="entrada">Escribe tu jugada</label>
+      <div class="fila-entrada">
+        <input id="entrada" name="entrada" type="text" autocomplete="off" autocapitalize="off"
+               spellcheck="false" inputmode="text" placeholder="c3-d4"
+               aria-describedby="ayuda-entrada error">
+        <button type="submit" id="enviar" class="boton boton-principal">Jugar</button>
+      </div>
+    </form>
+
+    <p id="ayuda-entrada" class="ayuda">
+      Mueve con <strong>c3-d4</strong> y come con <strong>c3xe5</strong>.
+      Escribe <strong>ayuda</strong>, <strong>estado</strong>, <strong>legales</strong> o <strong>deshacer</strong>.
+    </p>
+
+    <p id="detalle" class="detalle"></p>
+    <p id="error" class="error" role="alert"></p>
+
+    <h2 id="titulo-registro">Registro de la partida</h2>
+    <label for="registro" class="sr-only">Partida completa, de la primera jugada a la actual</label>
+    <textarea id="registro" readonly spellcheck="false" aria-describedby="registro-ayuda"></textarea>
+    <p id="registro-ayuda" class="ayuda">Aquí puedes leer toda la partida, desde el primer movimiento hasta el actual.</p>
+    <div class="botonera">
+      <button type="button" id="btn-copiar" class="boton">Copiar registro</button>
+      <button type="button" id="btn-exportar" class="boton">Exportar .txt</button>
+    </div>
+
+    <details class="ajustes">
+      <summary>Ajustes y accesibilidad</summary>
+      <div class="rejilla-ajustes">
+        <label for="nivel">Dificultad de la máquina</label>
+        <select id="nivel">
+          <option value="facil">Fácil</option>
+          <option value="medio" selected>Medio</option>
+          <option value="dificil">Difícil</option>
+        </select>
+
+        <label for="espera">Espera de la máquina</label>
+        <select id="espera">
+          <option value="5000" selected>5 segundos</option>
+          <option value="6000">6 segundos</option>
+          <option value="8000">8 segundos</option>
+          <option value="10000">10 segundos</option>
+        </select>
+
+        <label for="velocidad">Velocidad de la voz</label>
+        <select id="velocidad">
+          <option value="0.85">Lenta</option>
+          <option value="1" selected>Normal</option>
+          <option value="1.2">Rápida</option>
+        </select>
+      </div>
+      <p class="casilla-ajuste">
+        <input type="checkbox" id="chk-voz" checked>
+        <label for="chk-voz">Voz del juego (narra turnos y jugadas)</label>
+      </p>
+      <p class="casilla-ajuste">
+        <input type="checkbox" id="chk-sonido" checked>
+        <label for="chk-sonido">Señales sonoras (mover, comer, coronar, error)</label>
+      </p>
+      <p class="casilla-ajuste">
+        <input type="checkbox" id="chk-soplo" aria-describedby="ayuda-soplo">
+        <label for="chk-soplo">Con soplido</label>
+      </p>
+      <p class="ayuda" id="ayuda-soplo">
+        Regla tradicional: si puedes comer y no comes, la máquina puede retirar la ficha que debía comer,
+        sin gastar su turno, y después hace su jugada. Desactivada, la captura es obligatoria.
+      </p>
+      <p class="ayuda">
+        Si usas un lector de pantalla, puedes desactivar la voz del juego para evitar que se solapen las voces.
+        El tablero se recorre con las flechas y se activa con Enter o Espacio.
+      </p>
+    </details>
+
+    <details class="ayuda-panel" id="panel-ayuda">
+      <summary>Ayuda y comandos</summary>
+      <ul class="lista-ayuda">
+        <li><strong>c3-d4</strong>: mover de c3 a d4.</li>
+        <li><strong>c3xe5</strong>: comer. En capturas múltiples, <strong>c3xe5xg7</strong>.</li>
+        <li><strong>d4</strong>: inspeccionar una casilla.</li>
+        <li><strong>estado</strong>: turno, fichas y última jugada.</li>
+        <li><strong>legales</strong>: todas tus jugadas legales.</li>
+        <li><strong>deshacer</strong>, <strong>nueva</strong>, <strong>repetir</strong>.</li>
+        <li><strong>voz</strong> y <strong>sonido</strong>: activar o silenciar.</li>
+        <li><strong>soplido</strong>: activar o desactivar la regla del soplido.</li>
+        <li><strong>facil</strong>, <strong>medio</strong>, <strong>dificil</strong>: cambiar nivel.</li>
+        <li><strong>registro</strong> y <strong>tablero</strong>: llevar el foco.</li>
+      </ul>
+      <p class="ayuda">Atajos en el tablero: flechas para moverte, Inicio y Fin para los extremos de la fila, Enter o Espacio para actuar, Escape para cancelar la selección.</p>
+    </details>
+
+    <details class="ayuda-panel" id="panel-reglas">
+      <summary>Reglas de las damas españolas</summary>
+      <p class="ayuda">
+        Tablero de 8×8 sobre las casillas oscuras. Doce peones por bando en las tres primeras filas.
+        Los peones avanzan y comen en diagonal solo hacia delante. Las damas se mueven y comen
+        cualquier distancia en diagonal, hacia delante y hacia atrás. La captura es obligatoria:
+        hay que comerse el máximo número de fichas y, a igualdad, el máximo de damas.
+        Al llegar a la última fila el peón corona y termina su jugada. Pierde quien se queda
+        sin fichas o sin movimientos. Son tablas la repetición triple y las 40 jugadas de dama
+        sin mover peón ni comer.
+      </p>
+      <p class="ayuda">
+        <strong>Con soplido</strong>: si un jugador puede comer y no lo hace, el rival puede retirar
+        la ficha que debía comer. Hacerlo no es obligatorio ni consume el turno del rival, que mueve
+        después. En este juego, la máquina nunca omite capturas; si activas esta opción y tú omites
+        una, la máquina soplará automáticamente la ficha que debía comer.
+      </p>
+    </details>
+  </section>
+</main>
+
+<div id="anuncios" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+<script src="js/rules.js" defer></script>
+<script src="js/ai.js" defer></script>
+<script src="js/speech.js" defer></script>
+<script src="js/app.js" defer></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js');
+  });
+}
+
+function entrarPantallaCompleta() {
+  var elem = document.documentElement;
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen().catch(function(){});
+  } else if (elem.webkitRequestFullscreen) {
+    elem.webkitRequestFullscreen();
+  } else if (elem.msRequestFullscreen) {
+    elem.msRequestFullscreen();
+  }
+}
+
+window.addEventListener('load', function() {
+  setTimeout(entrarPantallaCompleta, 500);
+});
+
+document.addEventListener('click', function() {
+  entrarPantallaCompleta();
+}, { once: true });
+</script>
+</body>
+</html>
