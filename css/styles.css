@@ -135,7 +135,19 @@ a { color: var(--enlace); }
 }
 
 @media (max-width: 920px) {
-  .disposicion { grid-template-columns: 1fr; }
+  /* Columnas apiladas y tablero anclado arriba: al deslizar por el resto de
+     la página (panel, registro, ajustes), el tablero permanece visible. */
+  .disposicion { display: block; }
+  .zona-juego { display: contents; }
+  .marco-tablero {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    /* En pantallas poco altas (móvil en horizontal), se encoge para caber. */
+    width: min(100%, 640px, max(240px, 58vh));
+  }
+  /* Los focos de teclado y los anclajes no quedan ocultos tras el tablero. */
+  html { scroll-padding-top: min(58vh, 640px); }
 }
 
 @media (max-width: 560px) {
