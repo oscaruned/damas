@@ -212,6 +212,16 @@
     else if (k === 'End') { ev.preventDefault(); enfocar(D.idxOf(D.rowOf(i), 7)); return; }
     if (!dr && !dc) return;
     ev.preventDefault();
+    /* Con Shift: saltar hasta la próxima casilla jugable en la misma dirección. */
+    if (ev.shiftKey) {
+      var rs = D.rowOf(i) + dr, cs = D.colOf(i) + dc;
+      while (rs >= 0 && rs <= 7 && cs >= 0 && cs <= 7 && !D.isPlayable(D.idxOf(rs, cs))) {
+        rs += dr; cs += dc;
+      }
+      if (rs < 0 || rs > 7 || cs < 0 || cs > 7) { aviso('No hay más casillas jugables en esa dirección.'); return; }
+      enfocar(D.idxOf(rs, cs));
+      return;
+    }
     var r = D.rowOf(i) + dr, c = D.colOf(i) + dc;
     if (r < 0) r = 0; else if (r > 7) r = 7;
     if (c < 0) c = 0; else if (c > 7) c = 7;
@@ -1006,6 +1016,8 @@
         cmdAyuda(); return true;
       case 'estado': case 'situacion': case 'turno': case 'como va':
         cmdEstado(); return true;
+      case 'fichas': case 'piezas': case 'quedan':
+        cmdFichas(); return true;
       case 'legales': case 'movimientos': case 'jugadas':
       case 'que puedo mover': case 'puedo mover': case 'opciones':
         cmdLegales(); return true;
@@ -1053,8 +1065,8 @@
 
   function cmdAyuda() {
     if (el.panelAyuda) el.panelAyuda.open = true;
-    aviso('Ayuda. Mueve escribiendo c3-d4 y come con c3xe5. Comandos: estado, legales, deshacer, ' +
-      'nueva, reglas, repetir, voz, sonido, soplido, registro, tablero. En el tablero, usa las flechas y Enter.');
+    aviso('Ayuda. Mueve escribiendo c3-d4 y come con c3xe5. Comandos: estado, fichas, legales, deshacer, ' +
+      'nueva, reglas, repetir, voz, sonido, soplido, registro, tablero. En el tablero, usa las flechas y Enter; con Shift + flecha saltas hasta la próxima casilla jugable.');
   }
 
   function cmdEstado() {
@@ -1074,6 +1086,24 @@
       if (estado.soplo) txt += ' Con soplido puedes omitirla, pero expones la ficha a que la máquina la retire.';
     }
     if (estado.soplo) txt += ' Regla del soplido activada.';
+    aviso(txt);
+  }
+
+  function cmdFichas() {
+    var g = estado.juego, board = g.board;
+    var blancas = [], negras = [];
+    for (var i = 0; i < 64; i++) {
+      var p = board[i];
+      if (p === D.EMPTY) continue;
+      var ficha = D.pieceName(p) + ' ' + D.pieceColorName(p) + ' en ' + D.squareName(i);
+      if (D.isWhite(p)) blancas.push(ficha); else negras.push(ficha);
+    }
+    var txt = 'Quedan ' + blancas.length + (blancas.length === 1 ? ' ficha blanca' : ' fichas blancas') +
+      ' y ' + negras.length + (negras.length === 1 ? ' ficha negra' : ' fichas negras');
+    var lista = blancas.concat(negras).join(', ');
+    if (lista) txt += ': ' + lista;
+    txt += '.';
+    if (g.status === 'over') txt += ' ' + D.resultText(g) + '.';
     aviso(txt);
   }
 

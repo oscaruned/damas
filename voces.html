@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Damas — Probador de voces</title>
+<style>
+  :root {
+    --fondo: #0d1117;
+    --fondo-2: #131a23;
+    --texto: #e8eef6;
+    --muted: #9aa8ba;
+    --panel: rgba(255, 255, 255, 0.045);
+    --panel-fuerte: rgba(255, 255, 255, 0.075);
+    --borde: rgba(255, 255, 255, 0.10);
+    --campo: #0a0f15;
+    --acento: #6ee7b7;
+    --acento-2: #38bdf8;
+    --oro: #f3c969;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 2rem 1.25rem 3rem;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: var(--texto);
+    background:
+      radial-gradient(1100px 600px at 12% -10%, rgba(110, 231, 183, 0.10), transparent 60%),
+      linear-gradient(180deg, var(--fondo-2), var(--fondo) 55%);
+    line-height: 1.55;
+  }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; line-height: 1.2; margin: 0 0 0.3rem; }
+  .sub { color: var(--muted); margin: 0 0 1.5rem; }
+  .tarjeta {
+    background: var(--panel);
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1.2rem;
+  }
+  .tarjeta h2 { font-size: 1.05rem; margin: 0 0 0.6rem; }
+  .info { color: var(--muted); font-size: 0.9rem; margin: 0 0 0.8rem; }
+  button {
+    font: inherit;
+    font-weight: 600;
+    color: var(--texto);
+    background: var(--panel-fuerte);
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    padding: 0.6rem 0.95rem;
+    cursor: pointer;
+    min-height: 44px;
+  }
+  button:hover { background: rgba(255, 255, 255, 0.12); }
+  button.principal { background: linear-gradient(180deg, #34d399, #10b981); color: #052e21; border-color: #059669; }
+  .botonera { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  select, input[type="text"] {
+    font: inherit;
+    min-height: 42px;
+    padding: 0.45rem 0.6rem;
+    border-radius: 8px;
+    border: 1px solid var(--borde);
+    background: var(--campo);
+    color: var(--texto);
+    width: 100%;
+  }
+  .fila { display: flex; gap: 0.8rem; align-items: center; margin: 0.45rem 0; }
+  .fila:first-child { margin-top: 0; }
+  .fila label { font-size: 0.95rem; flex: 0 0 8.5rem; }
+  .fila select { flex: 1; }
+  .ranura { flex: 1; display: flex; gap: 0.4rem; align-items: center; }
+  .ranura input[type="range"] { flex: 1; }
+  .marcar { font-size: 0.9rem; color: var(--muted); min-width: 2.6rem; text-align: right; }
+  input[type="text"] { margin-top: 0.4rem; }
+  details { border: 1px solid var(--borde); border-radius: 12px; background: var(--panel); padding: 0.2rem 0.9rem; margin: 0.7rem 0 0; }
+  summary { cursor: pointer; font-weight: 600; padding: 0.6rem 0; }
+  .lista-voces { margin: 0.4rem 0 0.6rem; padding-left: 1.1rem; font-size: 0.88rem; color: var(--muted); max-height: 340px; overflow: auto; }
+  .lista-voces li { margin-bottom: 0.15rem; }
+  .lista-voces strong { color: var(--texto); }
+  .log { font-family: Consolas, "Cascadia Mono", monospace; font-size: 0.82rem; color: var(--oro); min-height: 1.2em; margin: 0.6rem 0 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Probador de voces</h1>
+  <p class="sub">Banco de pruebas independiente. No usa ni modifica nada del juego: solo <code>speechSynthesis</code>.</p>
+
+  <section class="tarjeta">
+    <h2>1. Voces disponibles en este dispositivo</h2>
+    <p class="info" id="cantidad">Comprobando…</p>
+    <div class="botonera">
+      <button type="button" id="btn-listar">Listar voces</button>
+      <button type="button" id="btn-refrescar">Refrescar</button>
+    </div>
+    <ul class="lista-voces" id="lista" hidden></ul>
+    <p class="log" id="log-plataforma" aria-live="off"></p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>2. Asignar voz por rol (simulación de dos locutores)</h2>
+    <div class="fila">
+      <label for="voz-avisos">Avisos / instrucciones</label>
+      <select id="voz-avisos"></select>
+    </div>
+    <div class="fila">
+      <label for="voz-maquina">Máquina (jugadas)</label>
+      <select id="voz-maquina"></select>
+    </div>
+    <div class="fila">
+      <label for="tono-maquina">Tono de la máquina</label>
+      <div class="ranura">
+        <input type="range" id="tono-maquina" min="0.5" max="1.5" step="0.05" value="0.8">
+        <span class="marcar" id="tono-valor">0.80</span>
+      </div>
+    </div>
+    <div class="fila">
+      <label for="vel-maquina">Velocidad máquina</label>
+      <div class="ranura">
+        <input type="range" id="vel-maquina" min="0.6" max="1.4" step="0.05" value="0.95">
+        <span class="marcar" id="vel-valor">0.95</span>
+      </div>
+    </div>
+    <p class="info">Idea de diseño: los avisos generales usarían la voz elegida para «Avisos» y la narración de jugadas de la máquina una voz y tono distintos, para saber de oído quién habla.</p>
+  </section>
+
+  <section class="tarjeta">
+    <h2>3. Pruebas</h2>
+    <div class="botonera">
+      <button type="button" class="principal" id="btn-aviso">Aviso: turnos y fichas</button>
+      <button type="button" class="principal" id="btn-maquina">Máquina: su jugada</button>
+      <button type="button" id="btn-secuencia">Ambas en secuencia</button>
+      <button type="button" id="btn-actual">Como lo hace el juego hoy</button>
+      <button type="button" id="btn-parar">Parar</button>
+    </div>
+    <label class="info" for="frase" style="display:block;margin-top:0.8rem">Frase personalizada (opcional, deja el campo para las frases de ejemplo)</label>
+    <input type="text" id="frase" placeholder="peón blanco en a3, dama negra en f4 c3xe5" spellcheck="false">
+    <p class="log" aria-live="polite" id="log"></p>
+  </section>
+
+  <details open>
+    <summary>Notas por plataforma</summary>
+    <p class="info">
+      La lista de voces <strong>no es la misma</strong> en Windows, Android e iPhone: cada sistema instala las suyas.
+      Chrome en Windows suele traer varias españolas (Microsoft + Google). Android usa el motor Google TTS del sistema,
+      con pocas voces es-* pero de buena calidad y tono/velocidad fiables. En iPhone/iPad las voces dependen de las
+      descargadas en Ajustes Accesibilidad Contenido hablado Voces; sin descarga extra hay muy pocas en español.
+    </p>
+  </details>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var synth = window.speechSynthesis || null;
+  var Utter = window.SpeechSynthesisUtterance || null;
+  var logEl = document.getElementById('log');
+  var voces = [];
+
+  function log(msg) { logEl.textContent = msg; }
+
+  function supported() {
+    if (synth && Utter) return true;
+    log('Lo siento, este navegador no soporta síntesis de voz.');
+    return false;
+  }
+
+  /* Equivalente al pickVoice() del juego: filtra es-ES, si no, cualquier es */
+  function vozComoElJuego() {
+    var es = voces.filter(function (v) { return /^es[-_]ES/i.test(v.lang); });
+    if (!es.length) es = voces.filter(function (v) { return /^es/i.test(v.lang); });
+    return es.length ? es[0] : null;
+  }
+
+  function cargarVoces() {
+    if (!supported()) return;
+    voces = synth.getVoices() || [];
+    var es = voces.filter(function (v) { return /^es/i.test(v.lang || ''); });
+    document.getElementById('cantidad').textContent =
+      'Voces instaladas: ' + voces.length + ' · En español: ' + es.length +
+      (voces.length ? '' : ' (algunos navegadores tardan; pulsa Refrescar)');
+    var marcaAvisos = vozComoElJuego()
+      ? '— voz es-ES por defecto (como el juego) —'
+      : '— voz del sistema por defecto —';
+    var marcaMaquina = es.length > 1
+      ? '— otra voz española distinta —'
+      : '— voz del sistema por defecto —';
+    fillSelect('voz-avisos', marcaAvisos);
+    fillSelect('voz-maquina', marcaMaquina);
+    /* Para que se oigan dos locutores nada más abrir: si Avisos usa la
+       primera española del sistema, la Máquina coge otra española. */
+    var selA = document.getElementById('voz-avisos');
+    var selM = document.getElementById('voz-maquina');
+    if (es.length > 1 && !selA.value && !selM.value) {
+      selA.value = selA.options[1].value;
+      selM.value = es[es.length - 1].name + '|' + es[es.length - 1].lang;
+      if (selA.value === selM.value && es.length > 2) selM.value = es[es.length - 2].name + '|' + es[es.length - 2].lang;
+    }
+  }
+
+  function fillSelect(id, marca) {
+    var sel = document.getElementById(id);
+    var elegida = sel.value;
+    sel.textContent = '';
+    if (marca) {
+      var o = document.createElement('option');
+      o.value = '';
+      o.textContent = marca;
+      sel.appendChild(o);
+    }
+    var es = voces.filter(function (v) { return /^es/i.test(v.lang || ''); });
+    var otras = voces.filter(function (v) { return !/^es/i.test(v.lang || ''); });
+    addOpts(sel, es);
+    if (es.length && otras.length) {
+      var sep = document.createElement('option');
+      sep.disabled = true;
+      sep.textContent = '— otras lenguas —';
+      sel.appendChild(sep);
+    }
+    addOpts(sel, otras);
+    if (elegida) sel.value = elegida;
+  }
+
+  function addOpts(sel, lista) {
+    lista.forEach(function (v) {
+      var o = document.createElement('option');
+      o.value = v.name + '|' + v.lang;
+      o.textContent = v.name + ' (' + v.lang + ')';
+      sel.appendChild(o);
+    });
+  }
+
+  function localizar(id) {
+    var val = document.getElementById(id).value;
+    if (!val) return null;
+    var partes = val.split('|');
+    var encontrada = voces.filter(function (v) {
+      return v.name === partes[0] && v.lang === partes[1];
+    });
+    return encontrada[0] || null;
+  }
+
+  function hablar(texto, voz, rate, pitch, alTerminar) {
+    try {
+      var u = new Utter(texto);
+      u.lang = 'es-ES';
+      u.rate = Number(rate) || 1;
+      u.pitch = Number(pitch) || 1;
+      if (voz) u.voice = voz;
+      if (alTerminar) u.onend = alTerminar;
+      synth.speak(u);
+      log('Narra: «' + texto + '» con ' + (voz ? voz.name + ' (' + voz.lang + ')' : 'la voz por defecto') +
+        ', tono ' + u.pitch + ', velocidad ' + u.rate);
+    } catch (e) { log('No he podido hablar: ' + e.message); }
+  }
+
+  function fraseO(frase) {
+    var campo = document.getElementById('frase');
+    var t = campo.value.trim();
+    campo.value = '';
+    return t || frase;
+  }
+
+  function avisoDemo() {
+    if (!supported()) return;
+    synth.cancel();
+    hablar(fraseO('Tu turno, blancas. Tienes 3 fichas y la máquina 2.'), localizar('voz-avisos'), 1, 1);
+  }
+
+  function maquinaDemo() {
+    if (!supported()) return;
+    synth.cancel();
+    hablar(fraseO('La máquina juega d6 a f6 y come tu peón de c3.'), localizar('voz-maquina'),
+      document.getElementById('vel-maquina').value, document.getElementById('tono-maquina').value);
+  }
+
+  function secuenciaDemo() {
+    if (!supported()) return;
+    synth.cancel();
+    hablar('Tu turno, blancas.', localizar('voz-avisos'), 1, 1, function () {
+      hablar('La máquina juega d6 a f6 y come tu peón de c3.', localizar('voz-maquina'),
+        document.getElementById('vel-maquina').value, document.getElementById('tono-maquina').value);
+    });
+  }
+
+  function comoElJuegoHoy() {
+    if (!supported()) return;
+    synth.cancel();
+    hablar(fraseO('Turno de blancas. Blancas: 3 fichas, 1 dama. Negras: 2 fichas.'), vozComoElJuego(), 1, 1);
+  }
+
+  document.getElementById('btn-listar').addEventListener('click', function () {
+    cargarVoces();
+    var ls = document.getElementById('lista');
+    if (!voces.length) { ls.hidden = true; return; }
+    ls.hidden = false;
+    ls.textContent = '';
+    voces.forEach(function (v) {
+      var li = document.createElement('li');
+      li.appendChild(document.createElement('strong')).textContent = v.name;
+      li.appendChild(document.createTextNode(' · ' + v.lang +
+        (v.localService ? ' · local' : ' · remota')));
+      ls.appendChild(li);
+    });
+    document.getElementById('log-plataforma').textContent = navigator.userAgent;
+  });
+  document.getElementById('btn-refrescar').addEventListener('click', cargarVoces);
+  document.getElementById('btn-aviso').addEventListener('click', avisoDemo);
+  document.getElementById('btn-maquina').addEventListener('click', maquinaDemo);
+  document.getElementById('btn-secuencia').addEventListener('click', secuenciaDemo);
+  document.getElementById('btn-actual').addEventListener('click', comoElJuegoHoy);
+  document.getElementById('btn-parar').addEventListener('click', function () {
+    if (supported()) { synth.cancel(); log('Silenciado.'); }
+  });
+  document.getElementById('tono-maquina').addEventListener('input', function () {
+    document.getElementById('tono-valor').textContent = this.value;
+  });
+  document.getElementById('vel-maquina').addEventListener('input', function () {
+    document.getElementById('vel-valor').textContent = this.value;
+  });
+
+  if (supported()) {
+    cargarVoces();
+    if (synth.addEventListener) synth.addEventListener('voiceschanged', cargarVoces);
+    else synth.onvoiceschanged = cargarVoces;
+    setTimeout(cargarVoces, 400);
+    setTimeout(cargarVoces, 1200);
+  }
+})();
+</script>
+</body>
+</html>
