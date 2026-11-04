@@ -6,6 +6,7 @@
   var INF = 1e9, MATE = 100000;
 
   var LEVELS = {
+    basico: { maxDepth: 1, timeMs: 90, random: 0.55, label: 'Básico' },
     facil: { maxDepth: 2, timeMs: 120, random: 0.35, label: 'Fácil' },
     medio: { maxDepth: 6, timeMs: 450, random: 0.06, label: 'Medio' },
     dificil: { maxDepth: 10, timeMs: 900, random: 0, label: 'Difícil' }

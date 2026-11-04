@@ -12,7 +12,9 @@
     ocupado: false,
     token: 0,
     focoSq: 0,
-    nivel: 'medio',
+    nivel: 'basico',
+    victorias: 0,
+    propuesta: null,
     espera: 5000,
     velocidad: 1,
     voz: true,
@@ -750,12 +752,38 @@
     if (entry.blowText) txt += ' ' + entry.blowText;
     if (g.status === 'over') {
       txt += ' ' + D.resultText(g) + (g.reason ? ' (' + g.reason + ').' : '');
+      var propuesta = registrarPartida();
+      if (propuesta) txt += ' ' + propuesta;
     } else if (g.turn === 'b') {
       txt += ' Turno de negras. La máquina está pensando.';
     } else {
       txt += ' Tu turno.';
     }
     return txt;
+  }
+
+  /* Cuenta las victorias seguidas del jugador en el nivel actual. A la tercera
+     ofrece subir de nivel; con derrota se rompe la racha (las tablas la mantienen). */
+  function registrarPartida() {
+    var g = estado.juego;
+    if (g.winner === 'b') {
+      estado.victorias = 0;
+      estado.propuesta = null;
+      guardar();
+      return '';
+    }
+    if (g.winner !== 'w') return '';
+    estado.victorias = (estado.victorias || 0) + 1;
+    var orden = ['basico', 'facil', 'medio', 'dificil'];
+    var siguiente = orden[orden.indexOf(estado.nivel) + 1];
+    if (siguiente && estado.victorias >= 3 && estado.victorias % 3 === 0) {
+      estado.propuesta = siguiente;
+      guardar();
+      return 'Has ganado ' + estado.victorias + ' partidas en el nivel ' + AI.LEVELS[estado.nivel].label +
+        '. Escribe subir para pasar al nivel ' + AI.LEVELS[siguiente].label + ', o seguir para quedarte ahí.';
+    }
+    guardar();
+    return '';
   }
 
   function programarMaquina(t0) {
@@ -946,6 +974,7 @@
     actualizarFoco();
     pintarRegistro();
     actualizarEstado();
+    if (el.nivel.value !== estado.nivel) el.nivel.value = estado.nivel;
 
     V.setEnabled(estado.voz);
     V.setRate(estado.velocidad);
@@ -956,7 +985,7 @@
       anunciar('Partida recuperada.' + (estado.soplo ? ' Regla del soplido activada.' : '') +
         ' ' + (estado.juego.turn === 'w' ? 'Tu turno.' : 'Turno de las negras.'));
     } else {
-      aviso('Nueva partida. Juegas con blancas. Turno de blancas.' +
+      aviso('Nueva partida. Juegas con blancas. Turno de blancas. Dificultad ' + AI.LEVELS[estado.nivel].label + '.' +
         (estado.soplo ? ' Regla del soplido activada.' : '') +
         ' Escribe tu jugada o usa el tablero.');
     }
@@ -1001,6 +1030,23 @@
   }
 
   function ejecutarComando(cmd) {
+    /* Respuesta pendiente a la oferta de subir de nivel. */
+    if (estado.propuesta) {
+      if (cmd === 'subir' || cmd === 'si' || cmd === 'subir nivel' || cmd === 'aceptar') {
+        var destino = estado.propuesta;
+        estado.propuesta = null;
+        estado.victorias = 0;
+        definirNivel(destino);
+        return true;
+      }
+      if (cmd === 'seguir' || cmd === 'no' || cmd === 'quedarse' || cmd === 'mantener') {
+        estado.propuesta = null;
+        estado.victorias = 0;
+        guardar();
+        aviso('Te quedas en el nivel ' + AI.LEVELS[estado.nivel].label + '. La cuenta vuelve a cero.');
+        return true;
+      }
+    }
     var m = /^casilla\s+([a-h][1-8])$/.exec(cmd);
     if (m) {
       var idx = D.parseSquare(m[1]);
@@ -1008,7 +1054,7 @@
       else inspeccionar(idx);
       return true;
     }
-    m = /^(?:dificultad|nivel)\s+(facil|medio|dificil)$/.exec(cmd);
+    m = /^(?:dificultad|nivel)\s+(basico|facil|medio|dificil)$/.exec(cmd);
     if (m) { definirNivel(m[1]); return true; }
 
     switch (cmd) {
@@ -1052,10 +1098,13 @@
       case 'exportar': case 'guardar':
         exportarRegistro(); return true;
       case 'facil': definirNivel('facil'); return true;
+      case 'basico': definirNivel('basico'); return true;
       case 'medio': definirNivel('medio'); return true;
       case 'dificil': definirNivel('dificil'); return true;
       case 'dificultad': case 'nivel':
-        aviso('Dificultad actual: ' + AI.LEVELS[estado.nivel].label + '.'); return true;
+        aviso('Dificultad actual: ' + AI.LEVELS[estado.nivel].label +
+          (estado.victorias ? (estado.victorias === 1 ? '. Victorias seguidas: 1.' : '. Victorias seguidas: ' + estado.victorias + '.') : '.') +
+          (estado.propuesta ? ' Tienes una oferta pendiente: escribe subir o seguir.' : '')); return true;
       case 'espera':
         aviso('La máquina espera ' + (estado.espera / 1000) + ' segundos.'); return true;
       default:
@@ -1066,7 +1115,8 @@
   function cmdAyuda() {
     if (el.panelAyuda) el.panelAyuda.open = true;
     aviso('Ayuda. Mueve escribiendo c3-d4 y come con c3xe5. Comandos: estado, fichas, legales, deshacer, ' +
-      'nueva, reglas, repetir, voz, sonido, soplido, registro, tablero. En el tablero, usa las flechas y Enter; con Shift + flecha saltas hasta la próxima casilla jugable.');
+      'nueva, reglas, repetir, voz, sonido, soplido, registro, tablero. Niveles: basico, facil, medio, dificil; ' +
+      'con tres victorias seguidas te ofrecera subir: contesta con subir o seguir. En el tablero, usa las flechas y Enter; con Shift + flecha saltas hasta la proxima casilla jugable.');
   }
 
   function cmdEstado() {
@@ -1157,10 +1207,18 @@
 
   function definirNivel(v) {
     if (!AI.LEVELS[v]) return;
+    var cambia = estado.nivel !== v;
     estado.nivel = v;
     if (el.nivel.value !== v) el.nivel.value = v;
-    guardar();
-    aviso('Dificultad ' + AI.LEVELS[v].label + '.');
+    if (cambia) {
+      estado.victorias = 0;
+      estado.propuesta = null;
+      guardar();
+      aviso('Dificultad ' + AI.LEVELS[v].label + '. La cuenta de victorias empieza de cero.');
+    } else {
+      guardar();
+      aviso('Dificultad ' + AI.LEVELS[v].label + '.');
+    }
   }
 
   function activarVoz(activa, avisarCambio) {
@@ -1248,6 +1306,8 @@
         soplos: estado.juego.history.map(function (h) { return h.blow ? h.blow.sq : null; }),
         soplo: estado.soplo,
         nivel: estado.nivel,
+        victorias: estado.victorias || 0,
+        propuesta: estado.propuesta || null,
         espera: estado.espera,
         velocidad: estado.velocidad,
         voz: estado.voz,
@@ -1276,6 +1336,8 @@
       estado.movidas = D.generateMoves(g.board, g.turn);
       if (typeof data.soplo === 'boolean') estado.soplo = data.soplo;
       if (data.nivel && AI.LEVELS[data.nivel]) estado.nivel = data.nivel;
+      if (typeof data.victorias === 'number' && data.victorias >= 0) estado.victorias = data.victorias;
+      if (data.propuesta && AI.LEVELS[data.propuesta]) estado.propuesta = data.propuesta;
       var esperas = { 5000: 1, 6000: 1, 8000: 1, 10000: 1 };
       if (esperas[data.espera]) estado.espera = Number(data.espera);
       if (data.velocidad) estado.velocidad = Number(data.velocidad) || 1;
@@ -1299,6 +1361,8 @@
     nuevaPartida: nuevaPartida,
     deshacer: deshacer,
     guardar: guardar,
+    textoTrasJugada: textoTrasJugada,
+    registrarPartida: registrarPartida,
     render: function () { pintarFichas(); actualizarCeldas(); actualizarEstado(); pintarRegistro(); }
   };
 
