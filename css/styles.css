@@ -21,6 +21,15 @@
   --marco: #2a1a10;
   --sombra: 0 24px 60px rgba(0, 0, 0, 0.55);
   --radio: 16px;
+  /* Lado máximo del tablero según la altura de la ventana: garantiza que el
+     cuadrado (más cabecera aprox.) no salga nunca por encima ni por debajo. */
+  --tablero-lado: calc(100vh - 180px);
+}
+
+/* Vista móvil: la barra de dirección falsea 100vh; svh es la altura mínima
+   garantizada y no se contrae al deslizar. */
+@supports (height: 1svh) {
+  :root { --tablero-lado: calc(100svh - 180px); }
 }
 
 @media (prefers-color-scheme: light) {
@@ -134,20 +143,19 @@ a { color: var(--enlace); }
   align-items: start;
 }
 
-@media (max-width: 920px) {
+@media (max-width: 920px), (max-height: 780px), (pointer: coarse) and (max-height: 1100px) {
   /* Columnas apiladas y tablero anclado arriba: al deslizar por el resto de
-     la página (panel, registro, ajustes), el tablero permanece visible. */
+     la página (panel, registro, ajustes), el tablero permanece visible.
+     - max-width:920px: pantallas estrechas.
+     - max-height:780px: pantallas cortas (móvil apaisado, portátil pequeño).
+     - pointer:coarse: tablets y móviles con pantalla táctil. */
   .disposicion { display: block; }
   .zona-juego { display: contents; }
-  .marco-tablero {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    /* En pantallas poco altas (móvil en horizontal), se encoge para caber. */
-    width: min(100%, 640px, max(240px, 58vh));
-  }
+  /* Cabecera compacta: en pantallas cortas (apaisado) deja sitio al tablero. */
+  .cabecera { padding: 0.6rem 1.25rem 0.8rem; }
+  .pista { max-width: 30ch; font-size: 0.85rem; }
   /* Los focos de teclado y los anclajes no quedan ocultos tras el tablero. */
-  html { scroll-padding-top: min(58vh, 640px); }
+  html { scroll-padding-top: min(640px, max(180px, var(--tablero-lado))); }
 }
 
 @media (max-width: 560px) {
@@ -182,7 +190,10 @@ a { color: var(--enlace); }
 /* --- Tablero --------------------------------------------------------- */
 
 .marco-tablero {
-  width: min(100%, 640px);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  width: min(100%, 640px, max(180px, var(--tablero-lado)));
   margin: 0 auto;
   padding: clamp(8px, 1.5vw, 18px);
   border-radius: 20px;
